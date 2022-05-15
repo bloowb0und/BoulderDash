@@ -4,18 +4,26 @@ namespace BoulderDash
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             PrintIntro();
+            Console.Write("Press any key to play ");
+            var colorBefore = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
+            Console.Write("BoulderDash");
+            Console.ForegroundColor = colorBefore;
+            Console.WriteLine("...");
+            Console.ReadKey();
+            
             
             var game = new Game();
             game.StartGame();
         }
 
-        static void PrintIntro()
+        private static void PrintIntro()
         {
             var colorBefore = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
             
             Console.WriteLine(@"  ____                 _      _                   _              _     ");
             Console.WriteLine(@" | __ )   ___   _   _ | |  __| |  ___  _ __    __| |  __ _  ___ | |__  ");
