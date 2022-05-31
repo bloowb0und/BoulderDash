@@ -14,10 +14,21 @@ namespace BoulderDash
             Console.ForegroundColor = colorBefore;
             Console.WriteLine("...");
             Console.ReadKey();
-            
-            
-            var game = new Game();
-            game.StartGame();
+
+            while (true)
+            {
+                Console.ForegroundColor = colorBefore;
+                var game = new Game();
+                game.StartGame();
+                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                Console.WriteLine("\n" + "Press 'r' to Restart game.");
+                var pressedKey = Console.ReadKey().Key;
+
+                if (pressedKey != ConsoleKey.R)
+                {
+                    break;
+                }
+            }
         }
 
         private static void PrintIntro()
