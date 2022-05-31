@@ -7,6 +7,7 @@ namespace BoulderDash
     {
         private readonly List<List<Element>> _gameField;
         private readonly Player _player;
+        private readonly int amountOfDiamonds;
 
         public Game()
         {
@@ -25,13 +26,14 @@ namespace BoulderDash
             _gameField[4][2] = new Diamond(4, 2);
             _gameField[3][2] = new Stone(3, 2);
             _gameField[4][1] = new Stone(1, 4);
-
             _gameField[1][12] = new Diamond(12, 1);
             _gameField[2][11] = new Stone(11, 1);
             _gameField[2][10] = new Stone(10, 1);
             _gameField[2][12] = new Stone(10, 1);
             _gameField[2][13] = new Stone(13, 1);
             _gameField[1][10] = new Stone(13, 1);
+
+            amountOfDiamonds = 2;
         }
 
         public void StartGame()
@@ -39,6 +41,7 @@ namespace BoulderDash
             Console.Clear();
             Console.CursorVisible = false;
             ConsoleKeyInfo enteredKey;
+            var diamondsCollected = 0;
 
             while (true)
             {
@@ -48,7 +51,9 @@ namespace BoulderDash
                 Console.WriteLine("Use arrows to move around");
                 Console.WriteLine(new string('=', 25));
                 Console.WriteLine("Win game - press W");
-                Console.WriteLine("Lose game - press L" + "\n");
+                Console.WriteLine("Lose game - press L");
+                Console.WriteLine(new string('=', 25));
+                Console.WriteLine($"Diamonds collected: {diamondsCollected}/{amountOfDiamonds}" + "\n");
                 Console.ForegroundColor = prevColor;
                 DrawField();
 
@@ -59,6 +64,10 @@ namespace BoulderDash
                         if (_player.X + 1 < _gameField[_player.Y].Count // check if wall
                             && _gameField[_player.Y][_player.X + 1].GetType() != typeof(Stone)) // check if stone
                         {
+                            if (_gameField[_player.Y][_player.X + 1].GetType() == typeof(Diamond))
+                            {
+                                diamondsCollected++;
+                            }
                             _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
                             _gameField[_player.Y][++_player.X] = _player;
                         }
@@ -69,6 +78,10 @@ namespace BoulderDash
                         if (_player.X - 1 >= 0 // check if wall
                             && _gameField[_player.Y][_player.X - 1].GetType() != typeof(Stone)) // check if stone
                         {
+                            if (_gameField[_player.Y][_player.X - 1].GetType() == typeof(Diamond))
+                            {
+                                diamondsCollected++;
+                            }
                             _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
                             _gameField[_player.Y][--_player.X] = _player;
                         }
@@ -79,6 +92,10 @@ namespace BoulderDash
                         if (_player.Y - 1 >= 0 // check if wall
                             && _gameField[_player.Y - 1][_player.X].GetType() != typeof(Stone)) // check if stone
                         {
+                            if (_gameField[_player.Y - 1][_player.X].GetType() == typeof(Diamond))
+                            {
+                                diamondsCollected++;
+                            }
                             _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
                             _gameField[--_player.Y][_player.X] = _player;
                         }
@@ -89,6 +106,10 @@ namespace BoulderDash
                         if (_player.Y + 1 < _gameField.Count // check if wall
                             && _gameField[_player.Y + 1][_player.X].GetType() != typeof(Stone)) // check if stone
                         {
+                            if (_gameField[_player.Y + 1][_player.X].GetType() == typeof(Diamond))
+                            {
+                                diamondsCollected++;
+                            }
                             _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
                             _gameField[++_player.Y][_player.X] = _player;
                         }
@@ -104,6 +125,12 @@ namespace BoulderDash
                         return;
                 }
 
+                if (diamondsCollected == amountOfDiamonds)
+                {
+                    EndGame(true);
+                    return;
+                }
+                
                 Console.Clear();
             }
         }
