@@ -41,7 +41,7 @@ namespace BoulderDash
 
             this._gameField[4][2] = new Diamond(4, 2);
             this._gameField[0][12] = new Diamond(12, 1);
-            
+
             this._gameField[_stoneList[0].Y][_stoneList[0].X] = _stoneList[0];
             this._gameField[_stoneList[1].Y][_stoneList[1].X] = _stoneList[1];
             this._gameField[_stoneList[2].Y][_stoneList[2].X] = _stoneList[2];
@@ -138,8 +138,9 @@ namespace BoulderDash
 
                 FallStones(isVerticalMotion);
 
-                if (CheckIfPlayerIsUnderStone())
+                if (IsStoneOnPlayer())
                 {
+                    EndGame(false);
                     return;
                 }
 
@@ -177,20 +178,14 @@ namespace BoulderDash
             Console.WriteLine($"{_amountOfDiamonds}" + "\n");
         }
 
-        private bool CheckIfPlayerIsUnderStone()
+        private bool IsStoneOnPlayer()
         {
-            if (this._stoneList.Any(stone => stone.X == this._player.X && stone.Y == this._player.Y))
-            {
-                EndGame(false);
-                return true;
-            }
-
-            return false;
+            return this._stoneList.Any(stone => stone.X == this._player.X && stone.Y == this._player.Y);
         }
 
         private void FallStones(bool isVerticalMotion)
         {
-            if (this._stoneList.Count < 1)
+            if (this._stoneList.Count == 0)
             {
                 return;
             }
@@ -206,9 +201,7 @@ namespace BoulderDash
                     || isVerticalMotion && this._gameField[stone.Y + 1][stone.X].GetType() == typeof(Player))
                 {
                     this._gameField[stone.Y][stone.X] = new Emptiness(stone.X, stone.Y);
-                    stone.Y++;
-                    this._gameField[stone.Y][stone.X] = stone;
-                    continue;
+                    this._gameField[++stone.Y][stone.X] = stone;
                 }
             }
         }

@@ -4,14 +4,8 @@ namespace BoulderDash
 {
     public class Player : Element
     {
-        public override int X { get; set; }
-        public override int Y { get; set; }
-
-        public Player(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
+        public Player(int x, int y) : base(x, y)
+        { }
 
         public override void Draw()
         {
