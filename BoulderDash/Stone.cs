@@ -14,7 +14,7 @@ namespace BoulderDash
 
         public void Fall()
         {
-            Y--;
+            Y++;
         }
     }
 }
