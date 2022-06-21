@@ -7,19 +7,25 @@ namespace BoulderDash
     public class Game
     {
         private readonly List<List<Element>> _gameField;
+        private readonly int _fieldWidth;
+        private readonly int _fieldHeight;
         private readonly Player _player;
         private readonly int _amountOfDiamonds;
         private readonly List<Stone> _stoneList;
+        private readonly List<Diamond> _diamondList;
 
         public Game()
         {
             this._gameField = new List<List<Element>>();
 
-            for (var i = 0; i < 5; i++)
+            this._fieldHeight = 5;
+            this._fieldWidth = 15;
+
+            for (var i = 0; i < _fieldHeight; i++)
             {
                 this._gameField.Add(new List<Element>());
 
-                for (var j = 0; j < 15; j++)
+                for (var j = 0; j < _fieldWidth; j++)
                 {
                     this._gameField[i].Add(new Sand(i, j));
                 }
@@ -39,18 +45,23 @@ namespace BoulderDash
                 new Stone(10, 1),
             };
 
-            this._gameField[4][2] = new Diamond(4, 2);
-            this._gameField[0][12] = new Diamond(12, 1);
+            this._diamondList = new List<Diamond>
+            {
+                new Diamond(4, 2),
+                new Diamond(12, 1),
+            };
             
-            this._gameField[_stoneList[0].Y][_stoneList[0].X] = _stoneList[0];
-            this._gameField[_stoneList[1].Y][_stoneList[1].X] = _stoneList[1];
-            this._gameField[_stoneList[2].Y][_stoneList[2].X] = _stoneList[2];
-            this._gameField[_stoneList[3].Y][_stoneList[3].X] = _stoneList[3];
-            this._gameField[_stoneList[4].Y][_stoneList[4].X] = _stoneList[4];
-            this._gameField[_stoneList[5].Y][_stoneList[5].X] = _stoneList[5];
-            this._gameField[_stoneList[6].Y][_stoneList[6].X] = _stoneList[6];
+            foreach (var diamond in _diamondList)
+            {
+                this._gameField[diamond.Y][diamond.X] = diamond;
+            }
 
-            _amountOfDiamonds = 2;
+            foreach (var stone in _stoneList)
+            {
+                this._gameField[stone.Y][stone.X] = stone;
+            }
+
+            this._amountOfDiamonds = _diamondList.Count;
         }
 
         public void StartGame()
@@ -68,67 +79,29 @@ namespace BoulderDash
                 DrawField();
 
                 enteredKey = Console.ReadKey();
-                var isVerticalMotion = false;
+
+                var keyHorizontalMotion = 0;
+                var keyVerticalMotion = 0;
                 switch (enteredKey.Key)
                 {
                     case ConsoleKey.RightArrow:
-                        if (_player.X + 1 < _gameField[_player.Y].Count // check if wall
-                            && _gameField[_player.Y][_player.X + 1].GetType() != typeof(Stone)) // check if stone
-                        {
-                            if (_gameField[_player.Y][_player.X + 1].GetType() == typeof(Diamond))
-                            {
-                                diamondsCollected++;
-                            }
-                            _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
-                            _gameField[_player.Y][++_player.X] = _player;
-                        }
-                        isVerticalMotion = false;
+                        keyHorizontalMotion = 1;
 
                         break;
 
                     case ConsoleKey.LeftArrow:
-                        if (_player.X - 1 >= 0 // check if wall
-                            && _gameField[_player.Y][_player.X - 1].GetType() != typeof(Stone)) // check if stone
-                        {
-                            if (_gameField[_player.Y][_player.X - 1].GetType() == typeof(Diamond))
-                            {
-                                diamondsCollected++;
-                            }
-                            _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
-                            _gameField[_player.Y][--_player.X] = _player;
-                        }
-                        isVerticalMotion = false;
+                        keyHorizontalMotion = -1;
 
                         break;
 
                     case ConsoleKey.UpArrow:
-                        if (_player.Y - 1 >= 0 // check if wall
-                            && _gameField[_player.Y - 1][_player.X].GetType() != typeof(Stone)) // check if stone
-                        {
-                            if (_gameField[_player.Y - 1][_player.X].GetType() == typeof(Diamond))
-                            {
-                                diamondsCollected++;
-                            }
-                            _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
-                            _gameField[--_player.Y][_player.X] = _player;
-                        }
-                        isVerticalMotion = true;
+                        keyVerticalMotion = -1;
 
                         break;
 
                     case ConsoleKey.DownArrow:
-                        if (_player.Y + 1 < _gameField.Count // check if wall
-                            && _gameField[_player.Y + 1][_player.X].GetType() != typeof(Stone)) // check if stone
-                        {
-                            if (_gameField[_player.Y + 1][_player.X].GetType() == typeof(Diamond))
-                            {
-                                diamondsCollected++;
-                            }
-                            _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
-                            _gameField[++_player.Y][_player.X] = _player;
-                        }
-                        isVerticalMotion = true;
-                        
+                        keyVerticalMotion = 1;
+
                         break;
 
                     case ConsoleKey.L:
@@ -136,10 +109,34 @@ namespace BoulderDash
                         return;
                 }
 
-                FallStones(isVerticalMotion);
-
-                if (CheckIfPlayerIsUnderStone())
+                if ((keyHorizontalMotion == 0 ? _player.Y + keyVerticalMotion : _player.X + keyHorizontalMotion) < (keyHorizontalMotion == 0 ? this._fieldHeight : this._fieldWidth)) // check right and bottom is wall
                 {
+                    if ((keyHorizontalMotion == 0
+                            ? _player.Y + keyVerticalMotion
+                            : _player.X + keyHorizontalMotion) >= 0) // check if left and top is wall
+                    {
+                        if (_gameField[_player.Y + keyVerticalMotion][_player.X + keyHorizontalMotion].GetType() !=
+                            typeof(Stone)) // check if stone
+                        {
+                            if (_gameField[_player.Y + keyVerticalMotion][_player.X + keyHorizontalMotion].GetType() ==
+                                typeof(Diamond))
+                            {
+                                diamondsCollected++;
+                            }
+
+                            _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
+                            _player.Y += keyVerticalMotion;
+                            _player.X += keyHorizontalMotion;
+                            _gameField[_player.Y][_player.X] = _player;
+                        }
+                    }
+                }
+
+                FallStones(keyVerticalMotion);
+
+                if (IsStoneOnPlayer())
+                {
+                    EndGame(false);
                     return;
                 }
 
@@ -177,20 +174,14 @@ namespace BoulderDash
             Console.WriteLine($"{_amountOfDiamonds}" + "\n");
         }
 
-        private bool CheckIfPlayerIsUnderStone()
+        private bool IsStoneOnPlayer()
         {
-            if (this._stoneList.Any(stone => stone.X == this._player.X && stone.Y == this._player.Y))
-            {
-                EndGame(false);
-                return true;
-            }
-
-            return false;
+            return this._stoneList.Any(stone => stone.X == this._player.X && stone.Y == this._player.Y);
         }
 
-        private void FallStones(bool isVerticalMotion)
+        private void FallStones(int keyVerticalMotion)
         {
-            if (this._stoneList.Count < 1)
+            if (this._stoneList.Count == 0)
             {
                 return;
             }
@@ -203,12 +194,11 @@ namespace BoulderDash
                 }
                 
                 if (this._gameField[stone.Y + 1][stone.X].GetType() == typeof(Emptiness)
-                    || isVerticalMotion && this._gameField[stone.Y + 1][stone.X].GetType() == typeof(Player))
+                    || keyVerticalMotion > 0 && _player.Y == _fieldHeight - 1 && this._gameField[stone.Y + 1][stone.X].GetType() == typeof(Player)) // if moving down and has nowhere to go
                 {
                     this._gameField[stone.Y][stone.X] = new Emptiness(stone.X, stone.Y);
-                    stone.Y++;
+                    stone.Fall();
                     this._gameField[stone.Y][stone.X] = stone;
-                    continue;
                 }
             }
         }
