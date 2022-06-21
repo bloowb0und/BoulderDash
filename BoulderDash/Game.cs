@@ -1,67 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace BoulderDash
 {
     public class Game
     {
-        private readonly List<List<Element>> _gameField;
-        private readonly int _fieldWidth;
-        private readonly int _fieldHeight;
-        private readonly Player _player;
-        private readonly int _amountOfDiamonds;
-        private readonly List<Stone> _stoneList;
-        private readonly List<Diamond> _diamondList;
+        private Field _field;
+        private Player _player;
+        private List<Stone> _stoneList;
+        private List<Diamond> _diamondList;
+        private int curLevel = 1;
 
         public Game()
         {
-            this._gameField = new List<List<Element>>();
-
-            this._fieldHeight = 5;
-            this._fieldWidth = 15;
-
-            for (var i = 0; i < _fieldHeight; i++)
-            {
-                this._gameField.Add(new List<Element>());
-
-                for (var j = 0; j < _fieldWidth; j++)
-                {
-                    this._gameField[i].Add(new Sand(i, j));
-                }
-            }
-
-            this._player = new Player(7, 2);
-            this._gameField[_player.Y][_player.X] = _player;
-
-            this._stoneList = new List<Stone>
-            {
-                new Stone(2, 3),
-                new Stone(1, 4),
-                new Stone(11, 1),
-                new Stone(10, 0),
-                new Stone(12, 1),
-                new Stone(13, 1),
-                new Stone(10, 1),
-            };
-
-            this._diamondList = new List<Diamond>
-            {
-                new Diamond(4, 2),
-                new Diamond(12, 1),
-            };
-            
-            foreach (var diamond in _diamondList)
-            {
-                this._gameField[diamond.Y][diamond.X] = diamond;
-            }
-
-            foreach (var stone in _stoneList)
-            {
-                this._gameField[stone.Y][stone.X] = stone;
-            }
-
-            this._amountOfDiamonds = _diamondList.Count;
+            // this._field.SaveToJson("lvl1.json", _diamondList, _stoneList, _player);
+            LoadFromJson("lvl1.json");
         }
 
         public void StartGame()
@@ -76,7 +32,7 @@ namespace BoulderDash
                 var prevColor = Console.ForegroundColor;
                 DrawInGameMenu(diamondsCollected);
                 Console.ForegroundColor = prevColor;
-                DrawField();
+                this._field.Draw();
 
                 enteredKey = Console.ReadKey();
 
@@ -109,28 +65,7 @@ namespace BoulderDash
                         return;
                 }
 
-                if ((keyHorizontalMotion == 0 ? _player.Y + keyVerticalMotion : _player.X + keyHorizontalMotion) < (keyHorizontalMotion == 0 ? this._fieldHeight : this._fieldWidth)) // check right and bottom is wall
-                {
-                    if ((keyHorizontalMotion == 0
-                            ? _player.Y + keyVerticalMotion
-                            : _player.X + keyHorizontalMotion) >= 0) // check if left and top is wall
-                    {
-                        if (_gameField[_player.Y + keyVerticalMotion][_player.X + keyHorizontalMotion].GetType() !=
-                            typeof(Stone)) // check if stone
-                        {
-                            if (_gameField[_player.Y + keyVerticalMotion][_player.X + keyHorizontalMotion].GetType() ==
-                                typeof(Diamond))
-                            {
-                                diamondsCollected++;
-                            }
-
-                            _gameField[_player.Y][_player.X] = new Emptiness(_player.X, _player.Y);
-                            _player.Y += keyVerticalMotion;
-                            _player.X += keyHorizontalMotion;
-                            _gameField[_player.Y][_player.X] = _player;
-                        }
-                    }
-                }
+                diamondsCollected = MakeMove(keyHorizontalMotion, keyVerticalMotion, diamondsCollected);
 
                 FallStones(keyVerticalMotion);
 
@@ -140,7 +75,7 @@ namespace BoulderDash
                     return;
                 }
 
-                if (diamondsCollected == _amountOfDiamonds)
+                if (diamondsCollected == _diamondList.Count)
                 {
                     EndGame(true);
                     return;
@@ -148,6 +83,35 @@ namespace BoulderDash
                 
                 Console.Clear();
             }
+        }
+
+        private int MakeMove(int keyHorizontalMotion, int keyVerticalMotion, int diamondsCollected)
+        {
+            if ((keyHorizontalMotion == 0 ? _player.Y + keyVerticalMotion : _player.X + keyHorizontalMotion) <
+                (keyHorizontalMotion == 0 ? this._field.Height : this._field.Width)) // check right and bottom is wall
+            {
+                if ((keyHorizontalMotion == 0
+                        ? _player.Y + keyVerticalMotion
+                        : _player.X + keyHorizontalMotion) >= 0) // check if left and top is wall
+                {
+                    if (_field[_player.X + keyHorizontalMotion, _player.Y + keyVerticalMotion].GetType() !=
+                        typeof(Stone)) // check if stone
+                    {
+                        if (_field[_player.X + keyHorizontalMotion, _player.Y + keyVerticalMotion].GetType() ==
+                            typeof(Diamond))
+                        {
+                            diamondsCollected++;
+                        }
+
+                        _field[_player.X, _player.Y] = new Emptiness(_player.X, _player.Y);
+                        _player.Y += keyVerticalMotion;
+                        _player.X += keyHorizontalMotion;
+                        _field[_player.X, _player.Y] = _player;
+                    }
+                }
+            }
+
+            return diamondsCollected;
         }
 
         private void DrawInGameMenu(int diamondsCollected)
@@ -171,7 +135,7 @@ namespace BoulderDash
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write($"/");
             Console.ForegroundColor = ConsoleColor.DarkCyan;
-            Console.WriteLine($"{_amountOfDiamonds}" + "\n");
+            Console.WriteLine($"{_diamondList.Count}" + "\n");
         }
 
         private bool IsStoneOnPlayer()
@@ -188,34 +152,19 @@ namespace BoulderDash
 
             foreach (var stone in this._stoneList)
             {
-                if (stone.Y + 1 == this._gameField.Count) // check if already at the bottom
+                if (stone.Y + 1 == this._field.Height) // check if already at the bottom
                 {
                     continue;
                 }
                 
-                if (this._gameField[stone.Y + 1][stone.X].GetType() == typeof(Emptiness)
-                    || keyVerticalMotion > 0 && _player.Y == _fieldHeight - 1 && this._gameField[stone.Y + 1][stone.X].GetType() == typeof(Player)) // if moving down and has nowhere to go
+                if (this._field[stone.X,stone.Y + 1].GetType() == typeof(Emptiness)
+                    || keyVerticalMotion > 0 && _player.Y == this._field.Height - 1 && this._field[stone.X,stone.Y + 1].GetType() == typeof(Player)) // if moving down and has nowhere to go
                 {
-                    this._gameField[stone.Y][stone.X] = new Emptiness(stone.X, stone.Y);
+                    this._field[stone.X,stone.Y] = new Emptiness(stone.X, stone.Y);
                     stone.Fall();
-                    this._gameField[stone.Y][stone.X] = stone;
+                    this._field[stone.X,stone.Y] = stone;
                 }
             }
-        }
-
-        private void DrawField()
-        {
-            Console.WriteLine(" " + new string('-', _gameField[0].Count));
-            for (var i = 0; i < _gameField.Count; i++)
-            {
-                Console.Write('|');
-                for (var j = 0; j < _gameField[i].Count; j++)
-                {
-                    _gameField[i][j].Draw();
-                }
-                Console.WriteLine('|');
-            }
-            Console.WriteLine(" " + new string('-', _gameField[0].Count));
         }
 
         private void EndGame(bool victoryStatus)
@@ -224,12 +173,51 @@ namespace BoulderDash
             if (victoryStatus)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Congratulations! You won <3");
+                // Console.WriteLine("Congratulations! You won <3");
+                Console.WriteLine(@"   ___                            _         _       _   _                    _                                        
+  / __\___  _ __   __ _ _ __ __ _| |_ _   _| | __ _| |_(_) ___  _ __  ___   / \ /\_/\___  _   _  __      _____  _ __  
+ / /  / _ \| '_ \ / _` | '__/ _` | __| | | | |/ _` | __| |/ _ \| '_ \/ __| /  / \_ _/ _ \| | | | \ \ /\ / / _ \| '_ \ 
+/ /__| (_) | | | | (_| | | | (_| | |_| |_| | | (_| | |_| | (_) | | | \__ \/\_/   / \ (_) | |_| |  \ V  V / (_) | | | |
+\____/\___/|_| |_|\__, |_|  \__,_|\__|\__,_|_|\__,_|\__|_|\___/|_| |_|___/\/     \_/\___/ \__,_|   \_/\_/ \___/|_| |_|
+                  |___/                                                                                               ");
                 return;
             }
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Better luck next time :(");
+            // Console.WriteLine("Better luck next time :(");
+            Console.WriteLine(@"███   ▄███▄     ▄▄▄▄▀ ▄▄▄▄▀ ▄███▄   █▄▄▄▄     █       ▄   ▄█▄    █  █▀        ▄   ▄███▄      ▄     ▄▄▄▄▀        ▄▄▄▄▀ ▄█ █▀▄▀█ ▄███▄   
+█  █  █▀   ▀ ▀▀▀ █ ▀▀▀ █    █▀   ▀  █  ▄▀     █        █  █▀ ▀▄  █▄█           █  █▀   ▀ ▀▄   █ ▀▀▀ █        ▀▀▀ █    ██ █ █ █ █▀   ▀  
+█ ▀ ▄ ██▄▄       █     █    ██▄▄    █▀▀▌      █     █   █ █   ▀  █▀▄       ██   █ ██▄▄     █ ▀      █            █    ██ █ ▄ █ ██▄▄    
+█  ▄▀ █▄   ▄▀   █     █     █▄   ▄▀ █  █      ███▄  █   █ █▄  ▄▀ █  █      █ █  █ █▄   ▄▀ ▄ █      █            █     ▐█ █   █ █▄   ▄▀ 
+███   ▀███▀    ▀     ▀      ▀███▀     █           ▀ █▄ ▄█ ▀███▀    █       █  █ █ ▀███▀  █   ▀▄   ▀            ▀       ▐    █  ▀███▀   
+                                     ▀               ▀▀▀          ▀        █   ██         ▀                                ▀           
+                                                                                                                                       ");
+        }
+        
+        public void LoadFromJson(string fileName)
+        {
+            var level = File.ReadAllText($"levels/{fileName}");
+            
+            var deserializedProduct = JsonConvert.DeserializeObject<LevelSerialization>(level);
+            if (deserializedProduct != null)
+            {
+                this._field = new Field(deserializedProduct.Width, deserializedProduct.Height);
+
+                _diamondList = deserializedProduct.Diamonds;
+                foreach (var diamond in deserializedProduct.Diamonds)
+                {
+                    this._field[diamond.X,diamond.Y] = diamond;
+                }
+
+                _stoneList = deserializedProduct.Stones;
+                foreach (var stone in deserializedProduct.Stones)
+                {
+                    this._field[stone.X,stone.Y] = stone;
+                }
+                
+                this._player = new Player(deserializedProduct.Player.X, deserializedProduct.Player.Y);
+                this._field[_player.X,_player.Y] = _player;
+            }
         }
     }
 }
