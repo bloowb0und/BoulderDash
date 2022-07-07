@@ -24,7 +24,7 @@ namespace BoulderDash
 
                 for (var j = 0; j < Width; j++)
                 {
-                    this._gameField[i].Add(new Sand(i, j));
+                    this._gameField[i].Add(new Sand());
                 }
             }
         }

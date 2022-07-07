@@ -14,6 +14,14 @@ namespace BoulderDash
         private List<Diamond> _diamondList;
         private int curLevel = 1;
 
+        private readonly Dictionary<ConsoleKey, (int, int)> _directions = new()
+        {
+            {ConsoleKey.RightArrow, (1, 0)},
+            {ConsoleKey.LeftArrow, (-1, 0)},
+            {ConsoleKey.UpArrow, (0, -1)},
+            {ConsoleKey.DownArrow, (0, 1)},
+        };
+
         public Game()
         {
             // this._field.SaveToJson("lvl1.json", _diamondList, _stoneList, _player);
@@ -36,38 +44,21 @@ namespace BoulderDash
 
                 enteredKey = Console.ReadKey();
 
-                var keyHorizontalMotion = 0;
-                var keyVerticalMotion = 0;
-                switch (enteredKey.Key)
+                int deltaX = 0, deltaY = 0;
+
+                if (_directions.ContainsKey(enteredKey.Key))
                 {
-                    case ConsoleKey.RightArrow:
-                        keyHorizontalMotion = 1;
-
-                        break;
-
-                    case ConsoleKey.LeftArrow:
-                        keyHorizontalMotion = -1;
-
-                        break;
-
-                    case ConsoleKey.UpArrow:
-                        keyVerticalMotion = -1;
-
-                        break;
-
-                    case ConsoleKey.DownArrow:
-                        keyVerticalMotion = 1;
-
-                        break;
-
-                    case ConsoleKey.L:
-                        EndGame(false);
-                        return;
+                    (deltaX, deltaY) = _directions[enteredKey.Key];
                 }
 
-                diamondsCollected = MakeMove(keyHorizontalMotion, keyVerticalMotion, diamondsCollected);
+                if (enteredKey.Key == ConsoleKey.L)
+                {
+                    EndGame(false);
+                    return;
+                }
 
-                FallStones(keyVerticalMotion);
+                diamondsCollected = MakeMove(deltaX, deltaY, diamondsCollected);
+                FallStones(deltaY);
 
                 if (IsStoneOnPlayer())
                 {
@@ -85,33 +76,36 @@ namespace BoulderDash
             }
         }
 
-        private int MakeMove(int keyHorizontalMotion, int keyVerticalMotion, int diamondsCollected)
+        private int MakeMove(int deltaX, int deltaY, int diamondsCollected)
         {
-            if ((keyHorizontalMotion == 0 ? _player.Y + keyVerticalMotion : _player.X + keyHorizontalMotion) <
-                (keyHorizontalMotion == 0 ? this._field.Height : this._field.Width)) // check right and bottom is wall
+            if (this.IsInside(deltaX, deltaY))
             {
-                if ((keyHorizontalMotion == 0
-                        ? _player.Y + keyVerticalMotion
-                        : _player.X + keyHorizontalMotion) >= 0) // check if left and top is wall
+                if (_field[_player.X + deltaX, _player.Y + deltaY].GetType() !=
+                    typeof(Stone)) // check if stone
                 {
-                    if (_field[_player.X + keyHorizontalMotion, _player.Y + keyVerticalMotion].GetType() !=
-                        typeof(Stone)) // check if stone
+                    if (_field[_player.X + deltaX, _player.Y + deltaY].GetType() ==
+                        typeof(Diamond))
                     {
-                        if (_field[_player.X + keyHorizontalMotion, _player.Y + keyVerticalMotion].GetType() ==
-                            typeof(Diamond))
-                        {
-                            diamondsCollected++;
-                        }
-
-                        _field[_player.X, _player.Y] = new Emptiness(_player.X, _player.Y);
-                        _player.Y += keyVerticalMotion;
-                        _player.X += keyHorizontalMotion;
-                        _field[_player.X, _player.Y] = _player;
+                        diamondsCollected++;
                     }
+
+                    _field[_player.X, _player.Y] = new Emptiness();
+                    _player.Y += deltaY;
+                    _player.X += deltaX;
+                    _field[_player.X, _player.Y] = _player;
                 }
             }
 
             return diamondsCollected;
+        }
+
+        private bool IsInside(int deltaX, int deltaY)
+        {
+            var onRightAndBottomEdge = (deltaX == 0 ? _player.Y + deltaY : _player.X + deltaX) <
+                                       (deltaX == 0 ? _field.Height : _field.Width);
+            var onLeftAndTopEdge = (deltaX == 0 ? _player.Y + deltaY : _player.X + deltaX) >= 0;
+
+            return onRightAndBottomEdge && onLeftAndTopEdge;
         }
 
         private void DrawInGameMenu(int diamondsCollected)
@@ -143,7 +137,7 @@ namespace BoulderDash
             return this._stoneList.Any(stone => stone.X == this._player.X && stone.Y == this._player.Y);
         }
 
-        private void FallStones(int keyVerticalMotion)
+        private void FallStones(int deltaY)
         {
             if (this._stoneList.Count == 0)
             {
@@ -156,11 +150,17 @@ namespace BoulderDash
                 {
                     continue;
                 }
+
+                var pressedDownAndOnEdge = _field[stone.X, stone.Y + 1].GetType() == typeof(Emptiness)
+                                           || (deltaY > 0 && (_player.Y == _field.Height - 1 ||
+                                                                         _field[_player.X, _player.Y + 1].GetType() ==
+                                                                         typeof(Stone))
+                                                                     && _field[stone.X, stone.Y + 1].GetType() ==
+                                                                     typeof(Player));
                 
-                if (this._field[stone.X,stone.Y + 1].GetType() == typeof(Emptiness)
-                    || keyVerticalMotion > 0 && _player.Y == this._field.Height - 1 && this._field[stone.X,stone.Y + 1].GetType() == typeof(Player)) // if moving down and has nowhere to go
+                if (pressedDownAndOnEdge) // if moving down and has nowhere to go
                 {
-                    this._field[stone.X,stone.Y] = new Emptiness(stone.X, stone.Y);
+                    this._field[stone.X,stone.Y] = new Emptiness();
                     stone.Fall();
                     this._field[stone.X,stone.Y] = stone;
                 }

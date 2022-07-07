@@ -5,6 +5,10 @@ namespace BoulderDash
         public int X { get; set; }
         public int Y { get; set; }
 
+        protected Element()
+        {
+        }
+
         protected Element(int x, int y)
         {
             X = x;
