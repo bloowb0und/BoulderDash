@@ -4,7 +4,7 @@ namespace BoulderDash
 {
     public class Emptiness : Element
     {
-        public Emptiness(int x, int y) : base(x, y)
+        public Emptiness()
         { }
         
         public override void Draw()
