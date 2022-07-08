@@ -6,10 +6,5 @@ namespace BoulderDash
     {
         public Sand()
         { }
-
-        public override void Draw()
-        {
-            Console.Write('·');
-        }
     }
 }

@@ -7,11 +7,6 @@ namespace BoulderDash
         public Player(int x, int y) : base(x, y)
         { }
 
-        public override void Draw()
-        {
-            Console.Write('I');
-        }
-
         public void MoveLeft()
         {
             this.X--;
