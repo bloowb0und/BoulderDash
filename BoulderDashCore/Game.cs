@@ -16,12 +16,16 @@ namespace BoulderDashClassLibrary
         public int DiamondsCollected;
         private int curLevel = 1;
 
-        private readonly Dictionary<ConsoleKey, (int, int)> _directions = new()
+        private Action<bool> endGame;
+        private Action clearScreen;
+        private Action<int> drawInGameMenu;
+
+        private readonly Dictionary<string, (int, int)> _directions = new()
         {
-            {ConsoleKey.RightArrow, (1, 0)},
-            {ConsoleKey.LeftArrow, (-1, 0)},
-            {ConsoleKey.UpArrow, (0, -1)},
-            {ConsoleKey.DownArrow, (0, 1)},
+            {"right", (1, 0)},
+            {"left", (-1, 0)},
+            {"up", (0, -1)},
+            {"down", (0, 1)},
         };
 
         public Game()
@@ -32,48 +36,53 @@ namespace BoulderDashClassLibrary
 
         public void StartGame(Action<int> drawInGameMenu, Action<bool> endGame, Action clearScreen)
         {
-            ConsoleKeyInfo enteredKey;
             clearScreen();
             
-            while (true)
+            DrawInGameMenu(drawInGameMenu, DiamondsCollected);
+            this.Field.Draw();
+
+            this.endGame = endGame;
+            this.clearScreen = clearScreen;
+            this.drawInGameMenu = drawInGameMenu;
+        }
+
+        public bool OnPressedButton(string key)
+        {
+            int deltaX = 0, deltaY = 0;
+
+            key = key.ToLower().Replace("arrow", ""); // cut "arrow" part
+
+            if (_directions.ContainsKey(key))
             {
-                var prevColor = Console.ForegroundColor;
-                DrawInGameMenu(drawInGameMenu, DiamondsCollected);
-                Console.ForegroundColor = prevColor;
-                this.Field.Draw();
-
-                enteredKey = Console.ReadKey();
-
-                int deltaX = 0, deltaY = 0;
-
-                if (_directions.ContainsKey(enteredKey.Key))
-                {
-                    (deltaX, deltaY) = _directions[enteredKey.Key];
-                }
-
-                if (enteredKey.Key == ConsoleKey.L)
-                {
-                    EndGame(endGame, false);
-                    return;
-                }
-
-                DiamondsCollected = MakeMove(deltaX, deltaY, DiamondsCollected);
-                FallStones(deltaY);
-
-                if (IsStoneOnPlayer())
-                {
-                    EndGame(endGame, false);
-                    return;
-                }
-
-                if (DiamondsCollected == DiamondList.Count)
-                {
-                    EndGame(endGame, true);
-                    return;
-                }
-                
-                this.ClearScreen(clearScreen);
+                (deltaX, deltaY) = _directions[key];
             }
+
+            if (key == "l")
+            {
+                EndGame(endGame, false);
+                return true;
+            }
+
+            DiamondsCollected = MakeMove(deltaX, deltaY, DiamondsCollected);
+            FallStones(deltaY);
+
+            if (IsStoneOnPlayer())
+            {
+                EndGame(endGame, false);
+                return true;
+            }
+
+            if (DiamondsCollected == DiamondList.Count)
+            {
+                EndGame(endGame, true);
+                return true;
+            }
+                
+            this.ClearScreen(clearScreen);
+            
+            DrawInGameMenu(drawInGameMenu, DiamondsCollected);
+            this.Field.Draw();
+            return false;
         }
 
         private void ClearScreen(Action clearScreen)

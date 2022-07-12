@@ -25,7 +25,7 @@ namespace BoulderDash
 
                 for (var j = 0; j < Width; j++)
                 {
-                    this.GameField[i].Add(new Sand());
+                    this.GameField[i].Add(new Sand(j, i));
                 }
             }
         }
@@ -44,28 +44,26 @@ namespace BoulderDash
         
         public void Draw()
         {
-            var wall = new Wall();
-
-            for (var i = 0; i < this.GameField[0].Count + 2; i++)
+            for (var i = -1; i < this.GameField[0].Count + 1; i++)
             {
-                new Wall().OnDrawElement();
+                new Wall(i, -1).OnDrawElement();
             }
             new Edge().OnDrawElement();
 
             for (var i = 0; i < this.GameField.Count; i++)
             {
-                new Wall().OnDrawElement();
+                new Wall(-1, i).OnDrawElement();
                 for (var j = 0; j < this.GameField[i].Count; j++)
                 {
                     this.GameField[i][j].OnDrawElement();
                 }
-                new Wall().OnDrawElement();
+                new Wall(this.GameField[i].Count, i).OnDrawElement();
                 new Edge().OnDrawElement();
             }
             
-            for (var i = 0; i < this.GameField[0].Count + 2; i++)
+            for (var i = -1; i < this.GameField[0].Count + 1; i++)
             {
-                new Wall().OnDrawElement();
+                new Wall(i, this.GameField.Count).OnDrawElement();
             }
         }
 

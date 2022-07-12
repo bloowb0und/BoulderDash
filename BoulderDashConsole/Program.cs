@@ -25,6 +25,16 @@ namespace BoulderDash
                 Element.DrawElement += ConsoleActions.ElementOnDrawElement;
                 game.StartGame(_ => ConsoleActions.DrawInGameMenu(game.DiamondsCollected, game.DiamondList.Count),
                     ConsoleActions.EndGame, ConsoleActions.ClearScreen);
+                while (true)
+                {
+                    var enteredKey = Console.ReadKey().Key.ToString();
+                    
+                    var isInterrupted = game.OnPressedButton(enteredKey);
+                    if (isInterrupted)
+                    {
+                        break;
+                    }
+                }
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
                 Console.WriteLine("\n" + "Press 'r' to Restart game.");
                 var pressedKey = Console.ReadKey().Key;
