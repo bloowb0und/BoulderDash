@@ -6,10 +6,5 @@ namespace BoulderDash
     {
         public Emptiness()
         { }
-        
-        public override void Draw()
-        {
-            Console.Write(' ');
-        }
     }
 }

@@ -6,10 +6,5 @@ namespace BoulderDash
     {
         public Diamond(int x, int y) : base(x, y)
         { }
-        
-        public override void Draw()
-        {
-            Console.Write('D');
-        }
     }
 }

@@ -1,3 +1,5 @@
+using System;
+
 namespace BoulderDash
 {
     public abstract class Element : IElement
@@ -15,6 +17,12 @@ namespace BoulderDash
             Y = y;
         }
 
-        public abstract void Draw();
+        // public abstract void Draw(Action<Element> drawAction);
+        public static event EventHandler DrawElement;
+
+        public void OnDrawElement()
+        {
+            DrawElement?.Invoke(this, EventArgs.Empty);
+        }
     }
 }
