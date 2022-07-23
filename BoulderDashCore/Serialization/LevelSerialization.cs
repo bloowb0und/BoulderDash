@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using BoulderDashClassLibrary.GameElements;
 
-namespace BoulderDash
+namespace BoulderDashClassLibrary.Serialization
 {
     public class LevelSerialization
     {

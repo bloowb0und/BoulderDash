@@ -1,6 +1,7 @@
 using System;
+using BoulderDashClassLibrary.Interfaces;
 
-namespace BoulderDash
+namespace BoulderDashClassLibrary.GameElements
 {
     public abstract class Element : IElement
     {

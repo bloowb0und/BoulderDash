@@ -1,5 +1,5 @@
 using System;
-using BoulderDashClassLibrary;
+using BoulderDashClassLibrary.GameElements;
 
 namespace BoulderDash
 {

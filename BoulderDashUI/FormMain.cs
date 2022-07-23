@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Windows.Forms;
-using BoulderDash;
 using BoulderDashClassLibrary;
+using BoulderDashClassLibrary.GameElements;
 
 namespace BoulderDashUI
 {
-    public partial class FormMain : Form
+    public sealed partial class FormMain : Form
     {
         private Game _game;
         private UIActions _uiActions;
@@ -35,7 +35,7 @@ namespace BoulderDashUI
         private void FormMain_KeyDown(object sender, KeyEventArgs e)
         {
             var enteredKey = e.KeyData.ToString();
-            var isInterrupted = _game.OnPressedButton(enteredKey);
+            _game.OnPressedButton(enteredKey);
         }
 
         private void Form1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)

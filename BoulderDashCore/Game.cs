@@ -2,23 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using BoulderDash;
+using BoulderDashClassLibrary.GameElements;
+using BoulderDashClassLibrary.Serialization;
 using Newtonsoft.Json;
 
 namespace BoulderDashClassLibrary
 {
     public class Game
     {
-        public Field Field;
+        private Field _field;
         private Player _player;
         private List<Stone> _stoneList;
         public List<Diamond> DiamondList;
         public int DiamondsCollected;
-        private int curLevel = 1;
+        private int _curLevel = 1;
 
-        private Action<bool> endGame;
-        private Action clearScreen;
-        private Action<int> drawInGameMenu;
+        private Action<bool> _endGame;
+        private Action _clearScreen;
+        private Action<int> _drawInGameMenu;
 
         private readonly Dictionary<string, (int, int)> _directions = new()
         {
@@ -31,7 +32,7 @@ namespace BoulderDashClassLibrary
         public Game()
         {
             // this._field.SaveToJson("lvl1.json", _diamondList, _stoneList, _player);
-            LoadFromJson("lvl1.json");
+            LoadFromJson($"lvl{_curLevel}.json");
         }
 
         public void StartGame(Action<int> drawInGameMenu, Action<bool> endGame, Action clearScreen)
@@ -39,11 +40,11 @@ namespace BoulderDashClassLibrary
             clearScreen();
             
             DrawInGameMenu(drawInGameMenu, DiamondsCollected);
-            this.Field.Draw();
+            this._field.Draw();
 
-            this.endGame = endGame;
-            this.clearScreen = clearScreen;
-            this.drawInGameMenu = drawInGameMenu;
+            this._endGame = endGame;
+            this._clearScreen = clearScreen;
+            this._drawInGameMenu = drawInGameMenu;
         }
 
         public bool OnPressedButton(string key)
@@ -59,7 +60,7 @@ namespace BoulderDashClassLibrary
 
             if (key == "l")
             {
-                EndGame(endGame, false);
+                EndGame(_endGame, false);
                 return true;
             }
 
@@ -68,20 +69,20 @@ namespace BoulderDashClassLibrary
 
             if (IsStoneOnPlayer())
             {
-                EndGame(endGame, false);
+                EndGame(_endGame, false);
                 return true;
             }
 
             if (DiamondsCollected == DiamondList.Count)
             {
-                EndGame(endGame, true);
+                EndGame(_endGame, true);
                 return true;
             }
                 
-            this.ClearScreen(clearScreen);
+            this.ClearScreen(_clearScreen);
             
-            DrawInGameMenu(drawInGameMenu, DiamondsCollected);
-            this.Field.Draw();
+            DrawInGameMenu(_drawInGameMenu, DiamondsCollected);
+            this._field.Draw();
             return false;
         }
 
@@ -94,19 +95,19 @@ namespace BoulderDashClassLibrary
         {
             if (this.IsInside(deltaX, deltaY))
             {
-                if (Field[_player.X + deltaX, _player.Y + deltaY].GetType() !=
+                if (_field[_player.X + deltaX, _player.Y + deltaY].GetType() !=
                     typeof(Stone)) // check if stone
                 {
-                    if (Field[_player.X + deltaX, _player.Y + deltaY].GetType() ==
+                    if (_field[_player.X + deltaX, _player.Y + deltaY].GetType() ==
                         typeof(Diamond))
                     {
                         diamondsCollected++;
                     }
 
-                    Field[_player.X, _player.Y] = new Emptiness();
+                    _field[_player.X, _player.Y] = new Emptiness();
                     _player.Y += deltaY;
                     _player.X += deltaX;
-                    Field[_player.X, _player.Y] = _player;
+                    _field[_player.X, _player.Y] = _player;
                 }
             }
 
@@ -116,7 +117,7 @@ namespace BoulderDashClassLibrary
         private bool IsInside(int deltaX, int deltaY)
         {
             var onRightAndBottomEdge = (deltaX == 0 ? _player.Y + deltaY : _player.X + deltaX) <
-                                       (deltaX == 0 ? Field.Height : Field.Width);
+                                       (deltaX == 0 ? _field.Height : _field.Width);
             var onLeftAndTopEdge = (deltaX == 0 ? _player.Y + deltaY : _player.X + deltaX) >= 0;
 
             return onRightAndBottomEdge && onLeftAndTopEdge;
@@ -141,23 +142,23 @@ namespace BoulderDashClassLibrary
 
             foreach (var stone in this._stoneList)
             {
-                if (stone.Y + 1 == this.Field.Height) // check if already at the bottom
+                if (stone.Y + 1 == this._field.Height) // check if already at the bottom
                 {
                     continue;
                 }
 
-                var pressedDownAndOnEdge = Field[stone.X, stone.Y + 1].GetType() == typeof(Emptiness)
-                                           || (deltaY > 0 && (_player.Y == Field.Height - 1 ||
-                                                                         Field[_player.X, _player.Y + 1].GetType() ==
+                var pressedDownAndOnEdge = _field[stone.X, stone.Y + 1].GetType() == typeof(Emptiness)
+                                           || (deltaY > 0 && (_player.Y == _field.Height - 1 ||
+                                                                         _field[_player.X, _player.Y + 1].GetType() ==
                                                                          typeof(Stone))
-                                                                     && Field[stone.X, stone.Y + 1].GetType() ==
+                                                                     && _field[stone.X, stone.Y + 1].GetType() ==
                                                                      typeof(Player));
                 
                 if (pressedDownAndOnEdge) // if moving down and has nowhere to go
                 {
-                    this.Field[stone.X,stone.Y] = new Emptiness();
+                    this._field[stone.X,stone.Y] = new Emptiness();
                     stone.Fall();
-                    this.Field[stone.X,stone.Y] = stone;
+                    this._field[stone.X,stone.Y] = stone;
                 }
             }
         }
@@ -166,30 +167,30 @@ namespace BoulderDashClassLibrary
         {
             endGame(victoryStatus);
         }
-        
-        public void LoadFromJson(string fileName)
+
+        private void LoadFromJson(string fileName)
         {
             var level = File.ReadAllText($"levels/{fileName}");
             
             var deserializedProduct = JsonConvert.DeserializeObject<LevelSerialization>(level);
             if (deserializedProduct != null)
             {
-                this.Field = new Field(deserializedProduct.Width, deserializedProduct.Height);
+                this._field = new Field(deserializedProduct.Width, deserializedProduct.Height);
 
                 DiamondList = deserializedProduct.Diamonds;
                 foreach (var diamond in deserializedProduct.Diamonds)
                 {
-                    this.Field[diamond.X,diamond.Y] = diamond;
+                    this._field[diamond.X,diamond.Y] = diamond;
                 }
 
                 _stoneList = deserializedProduct.Stones;
                 foreach (var stone in deserializedProduct.Stones)
                 {
-                    this.Field[stone.X,stone.Y] = stone;
+                    this._field[stone.X,stone.Y] = stone;
                 }
                 
                 this._player = new Player(deserializedProduct.Player.X, deserializedProduct.Player.Y);
-                this.Field[_player.X,_player.Y] = _player;
+                this._field[_player.X,_player.Y] = _player;
             }
         }
     }

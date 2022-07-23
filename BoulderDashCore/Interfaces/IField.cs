@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
+using BoulderDashClassLibrary.GameElements;
 
-namespace BoulderDash
+namespace BoulderDashClassLibrary.Interfaces
 {
     public interface IField
     {

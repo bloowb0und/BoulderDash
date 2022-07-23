@@ -1,6 +1,4 @@
-using System;
-
-namespace BoulderDash
+namespace BoulderDashClassLibrary.Interfaces
 {
     public interface IElement
     {
