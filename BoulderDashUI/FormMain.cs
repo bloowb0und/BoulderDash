@@ -13,34 +13,36 @@ namespace BoulderDashUI
         public FormMain()
         {
             InitializeComponent();
-            this.DoubleBuffered = true;
+            DoubleBuffered = true;
             _uiActions = new UIActions(this);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             var formWelcome = new FormWelcome();
-            this.Hide();
+            Hide();
             formWelcome.ShowDialog();
-            this.Show();
-            
+            Show();
+
             _game = new Game();
             Element.DrawElement += _uiActions.ElementOnDrawElement;
             _game.StartGame(_ => _uiActions.DrawInGameMenu(_game.DiamondsCollected, _game.DiamondList.Count),
                 _uiActions.EndGame, _uiActions.ClearScreen);
+            UpdateDiamondsAmount();
 
             // restart game
         }
 
         private void FormMain_KeyDown(object sender, KeyEventArgs e)
         {
-            var enteredKey = e.KeyData.ToString();
+            var enteredKey = e.KeyData.ToString().ToLower();
             _game.OnPressedButton(enteredKey);
+            UpdateDiamondsAmount();
         }
 
         private void Form1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
-            e.IsInputKey=true;
+            e.IsInputKey = true;
         }
 
         private void labelSurrender_Click(object sender, EventArgs e)
@@ -51,6 +53,11 @@ namespace BoulderDashUI
         private void FormMain_FormClosing(object sender, FormClosingEventArgs e)
         {
             Element.DrawElement -= _uiActions.ElementOnDrawElement;
+        }
+
+        private void UpdateDiamondsAmount()
+        {
+            labelDiamonds.Text = $"{_game.DiamondsCollected}/{_game.DiamondList.Count}";
         }
     }
 }

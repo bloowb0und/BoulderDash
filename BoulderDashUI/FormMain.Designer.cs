@@ -1,11 +1,13 @@
-﻿namespace BoulderDashUI
+﻿using System.ComponentModel;
+
+namespace BoulderDashUI
 {
     sealed partial class FormMain
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private IContainer components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -37,8 +39,13 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.pictureBoxMenu = new System.Windows.Forms.PictureBox();
             this.labelSurrender = new System.Windows.Forms.Label();
+            this.labelDiamonds = new System.Windows.Forms.Label();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.pictureBox3 = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize) (this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize) (this.pictureBoxMenu)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize) (this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize) (this.pictureBox3)).BeginInit();
             this.SuspendLayout();
             // 
             // labelArrows
@@ -121,12 +128,49 @@
             this.labelSurrender.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.labelSurrender.Click += new System.EventHandler(this.labelSurrender_Click);
             // 
+            // labelDiamonds
+            // 
+            this.labelDiamonds.BackColor = System.Drawing.Color.Transparent;
+            this.labelDiamonds.Font = new System.Drawing.Font("Monoid", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte) (204)));
+            this.labelDiamonds.ForeColor = System.Drawing.Color.White;
+            this.labelDiamonds.Location = new System.Drawing.Point(220, 418);
+            this.labelDiamonds.Name = "labelDiamonds";
+            this.labelDiamonds.Size = new System.Drawing.Size(349, 23);
+            this.labelDiamonds.TabIndex = 9;
+            this.labelDiamonds.Text = "* / *";
+            this.labelDiamonds.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Enabled = false;
+            this.pictureBox2.Image = ((System.Drawing.Image) (resources.GetObject("pictureBox2.Image")));
+            this.pictureBox2.Location = new System.Drawing.Point(434, 418);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(25, 25);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox2.TabIndex = 10;
+            this.pictureBox2.TabStop = false;
+            // 
+            // pictureBox3
+            // 
+            this.pictureBox3.Enabled = false;
+            this.pictureBox3.Image = ((System.Drawing.Image) (resources.GetObject("pictureBox3.Image")));
+            this.pictureBox3.Location = new System.Drawing.Point(328, 416);
+            this.pictureBox3.Name = "pictureBox3";
+            this.pictureBox3.Size = new System.Drawing.Size(25, 25);
+            this.pictureBox3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox3.TabIndex = 11;
+            this.pictureBox3.TabStop = false;
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.SlateBlue;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.pictureBox3);
+            this.Controls.Add(this.pictureBox2);
+            this.Controls.Add(this.labelDiamonds);
             this.Controls.Add(this.labelSurrender);
             this.Controls.Add(this.pictureBoxMenu);
             this.Controls.Add(this.pictureBox1);
@@ -146,8 +190,14 @@
             this.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.Form1_PreviewKeyDown);
             ((System.ComponentModel.ISupportInitialize) (this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize) (this.pictureBoxMenu)).EndInit();
+            ((System.ComponentModel.ISupportInitialize) (this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize) (this.pictureBox3)).EndInit();
             this.ResumeLayout(false);
         }
+
+        private System.Windows.Forms.Label labelDiamonds;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.PictureBox pictureBox3;
 
         private System.Windows.Forms.Label labelSurrender;
 

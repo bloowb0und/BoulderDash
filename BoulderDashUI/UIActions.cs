@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using BoulderDashClassLibrary.GameElements;
+using BoulderDashUI.Properties;
 
 namespace BoulderDashUI
 {
@@ -32,11 +33,11 @@ namespace BoulderDashUI
             var image = element switch
             {
                 Emptiness => null,
-                Player => Properties.Resources.player,
-                Sand => Properties.Resources.sand,
-                Stone => Properties.Resources.stone,
-                Diamond => Properties.Resources.diamond,
-                Wall => Properties.Resources.wall,
+                Player => Resources.player,
+                Sand => Resources.sand,
+                Stone => Resources.stone,
+                Diamond => Resources.diamond,
+                Wall => Resources.wall,
                 Edge => null,
                 _ => null
             };
@@ -59,20 +60,11 @@ namespace BoulderDashUI
 
         public void EndGame(bool victoryStatus)
         {
-            if (victoryStatus)
-            {
-                var formWin = new FormWin();
-                _formMain.Hide();
-                formWin.ShowDialog();
-                _formMain.Close();
-            }
-            else
-            {
-                var formLose = new FormLose();
-                _formMain.Hide();
-                formLose.ShowDialog();
-                _formMain.Close();
-            }
+            Form form = victoryStatus ? new FormWin() : new FormLose();
+            
+            _formMain.Hide();
+            form.ShowDialog();
+            _formMain.Close();
         }
 
         public void DrawInGameMenu(int diamondsCollected, int diamondsAmount)
@@ -81,11 +73,6 @@ namespace BoulderDashUI
             {
                 _formMain.Controls.Add(control);
             }
-        }
-
-        public void PrintIntro()
-        {
-            
         }
     }
 }

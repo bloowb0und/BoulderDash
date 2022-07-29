@@ -17,8 +17,7 @@ namespace BoulderDashClassLibrary.GameElements
             X = x;
             Y = y;
         }
-
-        // public abstract void Draw(Action<Element> drawAction);
+        
         public static event EventHandler DrawElement;
 
         public void OnDrawElement()

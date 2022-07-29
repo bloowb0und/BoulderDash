@@ -31,27 +31,25 @@ namespace BoulderDashClassLibrary
 
         public Game()
         {
-            // this._field.SaveToJson("lvl1.json", _diamondList, _stoneList, _player);
+            // _field.SaveToJson("lvl1.json", _diamondList, _stoneList, _player);
             LoadFromJson($"lvl{_curLevel}.json");
         }
 
         public void StartGame(Action<int> drawInGameMenu, Action<bool> endGame, Action clearScreen)
         {
-            clearScreen();
-            
-            DrawInGameMenu(drawInGameMenu, DiamondsCollected);
-            this._field.Draw();
+            _endGame = endGame;
+            _clearScreen = clearScreen;
+            _drawInGameMenu = drawInGameMenu;
 
-            this._endGame = endGame;
-            this._clearScreen = clearScreen;
-            this._drawInGameMenu = drawInGameMenu;
+            ClearScreen();
+            
+            DrawInGameMenu(DiamondsCollected);
+            _field.Draw();
         }
 
         public bool OnPressedButton(string key)
         {
             int deltaX = 0, deltaY = 0;
-
-            key = key.ToLower().Replace("arrow", ""); // cut "arrow" part
 
             if (_directions.ContainsKey(key))
             {
@@ -60,7 +58,7 @@ namespace BoulderDashClassLibrary
 
             if (key == "l")
             {
-                EndGame(_endGame, false);
+                EndGame(false);
                 return true;
             }
 
@@ -69,37 +67,37 @@ namespace BoulderDashClassLibrary
 
             if (IsStoneOnPlayer())
             {
-                EndGame(_endGame, false);
+                EndGame(false);
                 return true;
             }
 
             if (DiamondsCollected == DiamondList.Count)
             {
-                EndGame(_endGame, true);
+                EndGame(true);
                 return true;
             }
-                
-            this.ClearScreen(_clearScreen);
             
-            DrawInGameMenu(_drawInGameMenu, DiamondsCollected);
-            this._field.Draw();
+            ClearScreen();
+            
+            DrawInGameMenu(DiamondsCollected);
+            _field.Draw();
             return false;
         }
 
-        private void ClearScreen(Action clearScreen)
+        private void ClearScreen()
         {
-            clearScreen();
+            _clearScreen();
         }
 
         private int MakeMove(int deltaX, int deltaY, int diamondsCollected)
         {
-            if (this.IsInside(deltaX, deltaY))
+            if (IsInside(deltaX, deltaY))
             {
-                if (_field[_player.X + deltaX, _player.Y + deltaY].GetType() !=
-                    typeof(Stone)) // check if stone
+                var movedPlayer = _field[_player.X + deltaX, _player.Y + deltaY];
+                
+                if (movedPlayer is not Stone) // check if stone
                 {
-                    if (_field[_player.X + deltaX, _player.Y + deltaY].GetType() ==
-                        typeof(Diamond))
+                    if (movedPlayer is Diamond)
                     {
                         diamondsCollected++;
                     }
@@ -116,56 +114,59 @@ namespace BoulderDashClassLibrary
 
         private bool IsInside(int deltaX, int deltaY)
         {
-            var onRightAndBottomEdge = (deltaX == 0 ? _player.Y + deltaY : _player.X + deltaX) <
-                                       (deltaX == 0 ? _field.Height : _field.Width);
-            var onLeftAndTopEdge = (deltaX == 0 ? _player.Y + deltaY : _player.X + deltaX) >= 0;
+            var py = _player.Y + deltaY;
+            var px = _player.X + deltaX;
+            
+            var onRightAndBottomEdge = (deltaX == 0 ? py : px) < (deltaX == 0 ? _field.Height : _field.Width);
+            var onLeftAndTopEdge = (deltaX == 0 ? py : px) >= 0;
 
             return onRightAndBottomEdge && onLeftAndTopEdge;
         }
 
-        private void DrawInGameMenu(Action<int> drawInGameMenu, int diamondsCollected)
+        private void DrawInGameMenu(int diamondsCollected)
         {
-            drawInGameMenu(diamondsCollected);
+            _drawInGameMenu(diamondsCollected);
         }
 
         private bool IsStoneOnPlayer()
         {
-            return this._stoneList.Any(stone => stone.X == this._player.X && stone.Y == this._player.Y);
+            return _stoneList.Any(stone => stone.X == _player.X && stone.Y == _player.Y);
         }
 
         private void FallStones(int deltaY)
         {
-            if (this._stoneList.Count == 0)
+            if (_stoneList.Count == 0)
             {
                 return;
             }
 
-            foreach (var stone in this._stoneList)
+            foreach (var stone in _stoneList)
             {
-                if (stone.Y + 1 == this._field.Height) // check if already at the bottom
+                if (stone.Y + 1 == _field.Height) // check if already at the bottom
                 {
                     continue;
                 }
 
-                var pressedDownAndOnEdge = _field[stone.X, stone.Y + 1].GetType() == typeof(Emptiness)
-                                           || (deltaY > 0 && (_player.Y == _field.Height - 1 ||
-                                                                         _field[_player.X, _player.Y + 1].GetType() ==
-                                                                         typeof(Stone))
-                                                                     && _field[stone.X, stone.Y + 1].GetType() ==
-                                                                     typeof(Player));
+                var elemUnderStone = _field[stone.X, stone.Y + 1];
+                var playerIsOnBottom = _player.Y == _field.Height - 1;
+                var playerIsUnderStone = _field[_player.X, _player.Y + 1] is Stone;
+
+                var pressedDownAndOnEdge = elemUnderStone is Emptiness 
+                                           || (deltaY > 0 && (playerIsOnBottom || playerIsUnderStone) 
+                                                          && elemUnderStone is Player);
                 
                 if (pressedDownAndOnEdge) // if moving down and has nowhere to go
                 {
-                    this._field[stone.X,stone.Y] = new Emptiness();
+                    _field[stone.X,stone.Y] = new Emptiness();
                     stone.Fall();
-                    this._field[stone.X,stone.Y] = stone;
+                    _field[stone.X,stone.Y] = stone;
                 }
             }
         }
 
-        private void EndGame(Action<bool> endGame, bool victoryStatus)
+        private void EndGame(bool victoryStatus)
         {
-            endGame(victoryStatus);
+            _endGame(victoryStatus);
         }
 
         private void LoadFromJson(string fileName)
@@ -175,22 +176,22 @@ namespace BoulderDashClassLibrary
             var deserializedProduct = JsonConvert.DeserializeObject<LevelSerialization>(level);
             if (deserializedProduct != null)
             {
-                this._field = new Field(deserializedProduct.Width, deserializedProduct.Height);
+                _field = new Field(deserializedProduct.Width, deserializedProduct.Height);
 
                 DiamondList = deserializedProduct.Diamonds;
                 foreach (var diamond in deserializedProduct.Diamonds)
                 {
-                    this._field[diamond.X,diamond.Y] = diamond;
+                    _field[diamond.X,diamond.Y] = diamond;
                 }
 
                 _stoneList = deserializedProduct.Stones;
                 foreach (var stone in deserializedProduct.Stones)
                 {
-                    this._field[stone.X,stone.Y] = stone;
+                    _field[stone.X,stone.Y] = stone;
                 }
                 
-                this._player = new Player(deserializedProduct.Player.X, deserializedProduct.Player.Y);
-                this._field[_player.X,_player.Y] = _player;
+                _player = new Player(deserializedProduct.Player.X, deserializedProduct.Player.Y);
+                _field[_player.X,_player.Y] = _player;
             }
         }
     }

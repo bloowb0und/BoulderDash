@@ -29,6 +29,7 @@ namespace BoulderDash
                 while (true)
                 {
                     var enteredKey = Console.ReadKey().Key.ToString();
+                    enteredKey = enteredKey.ToLower().Replace("arrow", ""); // cut "arrow" part
                     
                     var isInterrupted = game.OnPressedButton(enteredKey);
                     if (isInterrupted)

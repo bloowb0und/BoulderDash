@@ -72,11 +72,11 @@ namespace BoulderDash
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.WriteLine(new string('=', 25));
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($"Diamonds collected: ");
+            Console.Write("Diamonds collected: ");
             Console.ForegroundColor = diamondsCollected > 0 ? ConsoleColor.Green : ConsoleColor.Gray;
             Console.Write($"{diamondsCollected}");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($"/");
+            Console.Write("/");
             Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine($"{diamondsAmount}" + "\n");
         }
